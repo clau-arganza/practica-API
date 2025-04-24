@@ -1,0 +1,101 @@
+import requests
+
+# Crear una "base de datos" (estructura en memoria)
+base_de_datos = []
+
+# Función para añadir datos de prueba desde la PokeAPI
+def añadir_pokemon_a_base(id_pokemon):
+    url = f"https://pokeapi.co/api/v2/pokemon/{id_pokemon}"
+    respuesta = requests.get(url)
+    if respuesta.status_code == 200:
+        data = respuesta.json()
+        pokemon = {
+            "id": data["id"],
+            "nombre": data["name"],
+            "altura": data["height"],
+            "peso": data["weight"],
+            "tipo": data["types"][0]["type"]["name"]
+        }
+        base_de_datos.append(pokemon)
+    else:
+        print(f"No se pudo obtener el Pokémon con ID {id_pokemon}")
+
+# Añadir datos de prueba (primeros 5 Pokémon)
+for i in range(1, 6):
+    añadir_pokemon_a_base(i)
+
+# Leer (mostrar) datos de prueba
+print("\n--- Lista de Pokémon ---")
+for p in base_de_datos:
+    print(p)
+
+# Actualizar datos con input del usuario
+print("\n--- Modificar un Pokémon ---")
+id_a_modificar = int(input("Introduce el ID del Pokémon que deseas modificar: "))
+campo_a_cambiar = input("¿Qué campo deseas modificar? (nombre/altura/peso/tipo): ").lower()
+nuevo_valor = input("Introduce el nuevo valor: ")
+
+# Buscar y modificar el Pokémon en la base de datos
+for p in base_de_datos:
+    if p["id"] == id_a_modificar:
+        if campo_a_cambiar in p:
+            if campo_a_cambiar in ["altura", "peso"]:
+                p[campo_a_cambiar] = int(nuevo_valor)
+            else:
+                p[campo_a_cambiar] = nuevo_valor
+            print(f"\n Pokémon actualizado correctamente.")
+        else:
+            print("Campo no válido.")
+        break
+else:
+    print("No se encontró un Pokémon con ese ID.")
+
+# Mostrar base de datos actualizada
+print("\n--- Base de datos actualizada ---")
+for p in base_de_datos:
+    print(p)
+
+import requests
+import time
+
+# Función para obtener un Pokémon desde la API
+def leer_desde_api(ids):
+    datos = []
+    for i in ids:
+        url = f"https://pokeapi.co/api/v2/pokemon/{i}"
+        r = requests.get(url)
+        if r.status_code == 200:
+            data = r.json()
+            datos.append({
+                "id": data["id"],
+                "nombre": data["name"],
+                "altura": data["height"],
+                "peso": data["weight"],
+                "tipo": data["types"][0]["type"]["name"]
+            })
+    return datos
+
+# Leer desde API
+ids_pokemon = list(range(1, 11))  # Leer 10 Pokémon para el test
+
+print("Midiendo tiempo desde API...")
+inicio_api = time.time()
+datos_api = leer_desde_api(ids_pokemon)
+fin_api = time.time()
+tiempo_api = fin_api - inicio_api
+
+# Simular base de datos (estructura en memoria)
+base_de_datos = datos_api.copy()
+
+# Leer desde base de datos
+print("Midiendo tiempo desde base de datos...")
+inicio_local = time.time()
+for p in base_de_datos:
+    _ = p["id"], p["nombre"], p["altura"], p["peso"], p["tipo"]
+fin_local = time.time()
+tiempo_local = fin_local - inicio_local
+
+# Mostrar resultados
+print("\nComparativa de tiempos:")
+print(f"Tiempo leyendo desde la API: {tiempo_api:.4f} segundos")
+print(f"Tiempo leyendo desde la base de datos local: {tiempo_local:.8f} segundos")
